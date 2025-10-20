@@ -34,10 +34,10 @@ export default function GeleStyleSelector({ selectedStyle, onSelectStyle }: Gele
             whileTap={{ scale: 0.98 }}
             transition={{ type: 'spring', stiffness: 300 }}
           >
-            {/* Style Image - Show mannequin for try-on selector */}
+            {/* Style Image - Show product image for try-on selector */}
             <div className="aspect-square bg-gradient-to-br from-neutral/10 to-neutral/20 overflow-hidden">
               <img
-                src={style.mannequin}
+                src={style.image}
                 alt={style.name}
                 className="w-full h-full object-cover"
               />

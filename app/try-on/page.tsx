@@ -44,8 +44,8 @@ export default function TryOnPage() {
 
       const mannequinImage = selectedProduct.mannequin;
 
-      // Now apply to user's photo using Google Gemini (Nano Banana)
-      const response = await fetch('/api/try-on-gemini', {
+      // Now apply to user's photo using FASHN Virtual Try-On
+      const response = await fetch('/api/try-on-fashn', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
