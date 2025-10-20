@@ -2,8 +2,11 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const fs = require('fs');
 const path = require('path');
 
+// Load environment variables
+require('dotenv').config({ path: '../.env.local' });
+
 // Initialize Gemini
-const genAI = new GoogleGenerativeAI('AIzaSyCp-RyOjFLhtoZ_o5XZZcL8oaFbm8DcftM');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // Product list (3-9)
 const products = [

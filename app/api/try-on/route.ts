@@ -94,8 +94,8 @@ export async function POST(request: Request) {
       const geleImageBuffer = await geleImageResponse.arrayBuffer();
       const geleImageBase64 = Buffer.from(geleImageBuffer).toString('base64');
 
-      // Create Gemini API request
-      const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${process.env.GEMINI_API_KEY}`;
+      // Create Gemini API request with standardized model
+      const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
       const geminiRequest = {
         contents: [{
@@ -118,10 +118,9 @@ export async function POST(request: Request) {
           ]
         }],
         generationConfig: {
-          temperature: 0.4,
-          topK: 32,
-          topP: 1,
-          maxOutputTokens: 4096,
+          responseModalities: ['IMAGE'],
+          temperature: 0.7,
+          maxOutputTokens: 8192,
         }
       };
 

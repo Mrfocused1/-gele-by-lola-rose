@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       const geleImageBuffer = await geleImageResponse.arrayBuffer();
       const geleImageBase64 = Buffer.from(geleImageBuffer).toString('base64');
 
-      const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${process.env.GEMINI_API_KEY}`;
+      const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
       const geminiRequest = {
         contents: [{

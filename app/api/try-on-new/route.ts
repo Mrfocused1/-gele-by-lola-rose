@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       const mannequinImageBuffer = await mannequinImageResponse.arrayBuffer();
       const mannequinImageBase64 = Buffer.from(mannequinImageBuffer).toString('base64');
 
-      const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${process.env.GEMINI_API_KEY}`;
+      const geminiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${process.env.GEMINI_API_KEY}`;
 
       // Dynamic prompt generation
       const promptText = `Analyze the first image (the person's photo) and create a close-up portrait that matches their characteristics exactly:
