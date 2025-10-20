@@ -44,8 +44,8 @@ export default function TryOnPage() {
 
       const mannequinImage = selectedProduct.mannequin;
 
-      // Now apply to user's photo using FASHN Virtual Try-On
-      const response = await fetch('/api/try-on-fashn', {
+      // Now apply to user's photo using FLUX Kontext (image-to-image with reference)
+      const response = await fetch('/api/try-on-seadream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
