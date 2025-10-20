@@ -1,0 +1,16 @@
+node_modules
+.next/cache
+.env.local
+.env
+*.log
+.DS_Store
+*.tsbuildinfo
+.git
+.gitignore
+README.md
+NANO_BANANA_SETUP.md
+NANO_BANANA_FIXED.md
+CLOUDINARY_SETUP.md
+test-nano-banana.js
+scripts/
+public/images/mannequins/
