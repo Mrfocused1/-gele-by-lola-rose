@@ -1,11 +1,11 @@
-node_modules
-.next/cache
+node_modules/
+.next/
 .env.local
 .env
 *.log
 .DS_Store
 *.tsbuildinfo
-.git
+.git/
 .gitignore
 README.md
 NANO_BANANA_SETUP.md
@@ -14,3 +14,9 @@ CLOUDINARY_SETUP.md
 test-nano-banana.js
 scripts/
 public/images/mannequins/
+public/videos/
+create_variations.sh
+SETUP_INSTRUCTIONS.md
+SETUP_AND_RUN.sh
+QUICK_FIX_INSTRUCTIONS.txt
+VIRTUAL_TRY_ON_SETUP.md
