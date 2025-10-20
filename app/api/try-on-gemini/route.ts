@@ -46,11 +46,11 @@ export async function POST(request: Request) {
     const userImageBuffer = await userImageResponse.arrayBuffer();
     const userImageBase64 = Buffer.from(userImageBuffer).toString('base64');
 
-    // Try using gemini-2.0-flash-exp-image-generation-001 model
-    // This is an experimental image generation model
-    console.log('Calling Gemini image generation API...');
+    // Use Gemini 2.5 Flash Image (Nano Banana) model
+    // This is Google's production image generation model
+    console.log('Calling Nano Banana (Gemini 2.5 Flash Image) API...');
 
-    const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+    const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent';
 
     const payload = {
       contents: [{
@@ -73,8 +73,8 @@ export async function POST(request: Request) {
         ]
       }],
       generationConfig: {
-        responseModalities: ['image'],
-        temperature: 1.0,
+        responseModalities: ['IMAGE', 'TEXT'],
+        temperature: 0.8,
       }
     };
 
