@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, use } from 'react';
 import { notFound } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ShoppingBag, Heart, Share2, Check, Truck, Shield, RefreshCw } from 'lucide-react';
@@ -11,8 +11,9 @@ import Button from '@/components/ui/Button';
 import ProductCard from '@/components/shop/ProductCard';
 import AnimationWrapper from '@/components/ui/AnimationWrapper';
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
-  const product = getProductById(parseInt(params.id));
+export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const product = getProductById(parseInt(id));
   const [selectedImage, setSelectedImage] = useState(0);
   const [isFavorite, setIsFavorite] = useState(false);
   const { addToCart } = useCartContext();
