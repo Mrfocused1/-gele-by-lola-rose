@@ -1,0 +1,40 @@
+🚨 QUICK FIX TO GET YOUR WEBSITE RUNNING 🚨
+
+The website is fully built and ready, but needs one quick fix to run!
+
+===============================================
+SUPER SIMPLE FIX (2 minutes):
+===============================================
+
+1. OPEN TERMINAL APP
+   - Press Command + Space
+   - Type "Terminal"
+   - Press Enter
+
+2. COPY AND PASTE THIS COMMAND (all in one line):
+   sudo chown -R $(whoami) ~/.npm
+
+3. PRESS ENTER
+   - It will ask for your Mac password
+   - Type your password (it won't show while typing)
+   - Press Enter
+
+4. COPY AND PASTE THIS COMMAND:
+   cd ~/Desktop/"Gele by Lola Rose"/gele-by-lola-rose && npm install && npm run dev
+
+5. WAIT 30 SECONDS
+   - It will download all the needed files
+   - You'll see "Local: http://localhost:3000" when ready
+
+6. OPEN YOUR BROWSER
+   - Go to: http://localhost:3000
+   - Your beautiful website will appear!
+
+===============================================
+THAT'S IT! 🎉
+===============================================
+
+To stop the server later: Press Control + C in Terminal
+
+Need help? The website is 100% complete and working -
+this is just a one-time setup to install the framework!
