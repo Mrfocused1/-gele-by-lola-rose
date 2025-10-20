@@ -44,8 +44,8 @@ export default function TryOnPage() {
 
       const mannequinImage = selectedProduct.mannequin;
 
-      // Now apply to user's photo using FLUX Kontext (image-to-image with reference)
-      const response = await fetch('/api/try-on-seadream', {
+      // Now apply to user's photo using Gemini image generation (experimental)
+      const response = await fetch('/api/try-on-gemini', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

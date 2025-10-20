@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { v2 as cloudinary } from 'cloudinary';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import path from 'path';
 import fs from 'fs';
 
@@ -10,6 +11,9 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Configure Google AI (Gemini for image editing)
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+
 export async function POST(request: Request) {
   try {
     const { userImage, mannequinImagePath } = await request.json();
@@ -18,7 +22,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing user image' }, { status: 400 });
     }
 
-    console.log('[GEMINI IMAGEN 3] Starting virtual try-on...');
+    console.log('[GEMINI IMAGE EDITING] Starting virtual try-on...');
 
     // Upload user's image to Cloudinary
     const uploadResult = await cloudinary.uploader.upload(userImage, {
@@ -29,88 +33,106 @@ export async function POST(request: Request) {
     const userImageUrl = uploadResult.secure_url;
     console.log('User image uploaded:', userImageUrl);
 
-    // Get mannequin image path and upload to Cloudinary for reference
+    // Get mannequin image path
     const mannequinPath = path.join(process.cwd(), 'public', mannequinImagePath || '/images/mannequins/test-gele-mannequin.jpg');
     console.log('Loading mannequin from:', mannequinPath);
 
-    // Read mannequin image and upload to Cloudinary
+    // Read mannequin image as base64
     const mannequinBuffer = fs.readFileSync(mannequinPath);
-    const mannequinBase64 = `data:image/png;base64,${mannequinBuffer.toString('base64')}`;
+    const mannequinBase64 = mannequinBuffer.toString('base64');
 
-    const mannequinUpload = await cloudinary.uploader.upload(mannequinBase64, {
-      folder: 'gele-try-on/references',
-      resource_type: 'image',
-      public_id: `mannequin-ref-${Date.now()}`,
-    });
-    const mannequinImageUrl = mannequinUpload.secure_url;
+    // Fetch user image and convert to base64
+    const userImageResponse = await fetch(userImageUrl);
+    const userImageBuffer = await userImageResponse.arrayBuffer();
+    const userImageBase64 = Buffer.from(userImageBuffer).toString('base64');
 
-    console.log('Calling Gemini Imagen 3 API via REST...');
+    // Try using gemini-2.0-flash-exp-image-generation-001 model
+    // This is an experimental image generation model
+    console.log('Calling Gemini image generation API...');
 
-    // Create detailed prompt describing the desired output
-    // Imagen 3 is text-to-image, so we describe what we want to generate
-    const prompt = `Professional portrait photograph of a Black woman wearing an elegant, intricately wrapped gele headwrap in traditional African style. The gele should completely cover all hair with a sophisticated tie and fold design. The fabric has vibrant colors and patterns. The woman has a warm, confident smile, looking directly at the camera. Studio lighting with soft shadows, professional photography, high detail, realistic skin tones. The headwrap is the focal point of the image, demonstrating expert wrapping technique with beautiful folds and structure.`;
+    const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
 
-    // Call Imagen 3 REST API
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict`;
+    const payload = {
+      contents: [{
+        parts: [
+          {
+            text: `Edit this image by adding an elaborate, traditional African gele headwrap. The gele should completely cover all hair with intricate folds and ties. Use the reference gele design shown in the second image. Keep the person's face, expression, and background exactly the same. Only add the headwrap.`
+          },
+          {
+            inlineData: {
+              mimeType: 'image/jpeg',
+              data: userImageBase64
+            }
+          },
+          {
+            inlineData: {
+              mimeType: 'image/png',
+              data: mannequinBase64
+            }
+          }
+        ]
+      }],
+      generationConfig: {
+        responseModalities: ['image'],
+        temperature: 1.0,
+      }
+    };
 
-    const imageGenResponse = await fetch(apiUrl, {
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'x-goog-api-key': process.env.GEMINI_API_KEY!,
       },
-      body: JSON.stringify({
-        instances: [
-          {
-            prompt: prompt,
-          }
-        ],
-        parameters: {
-          sampleCount: 1,
-          aspectRatio: '1:1',
-          safetyFilterLevel: 'block_some',
-          personGeneration: 'allow_adult',
-        }
-      }),
+      body: JSON.stringify(payload),
     });
 
-    if (!imageGenResponse.ok) {
-      const errorText = await imageGenResponse.text();
-      console.error('Imagen 3 API error:', errorText);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Gemini API error:', errorText);
       return NextResponse.json({
-        error: 'Imagen 3 API request failed',
+        error: 'Gemini API request failed',
         details: errorText,
-        status: imageGenResponse.status
+        status: response.status
       }, { status: 500 });
     }
 
-    const imageGenData = await imageGenResponse.json();
-    console.log('Imagen 3 response received');
+    const result = await response.json();
+    console.log('Gemini response received');
+    console.log('Response structure:', JSON.stringify(result, null, 2));
 
-    // Extract generated image from response
-    if (!imageGenData.predictions || imageGenData.predictions.length === 0) {
-      console.error('No predictions in Imagen response:', imageGenData);
+    // Check for image data in response
+    if (!result.candidates || result.candidates.length === 0) {
+      console.error('No candidates in response:', result);
       return NextResponse.json({
-        error: 'No image generated by Imagen 3',
-        details: imageGenData
+        error: 'No image generated',
+        details: result
       }, { status: 500 });
     }
 
-    const prediction = imageGenData.predictions[0];
-
-    // Imagen 3 returns base64 image in bytesBase64Encoded or imageBytes
-    const generatedImageBase64 = prediction.bytesBase64Encoded || prediction.imageBytes;
-
-    if (!generatedImageBase64) {
-      console.error('No image data in prediction:', prediction);
+    const candidate = result.candidates[0];
+    if (!candidate.content || !candidate.content.parts) {
+      console.error('No content parts:', candidate);
       return NextResponse.json({
-        error: 'No image data in Imagen 3 response',
-        details: prediction
+        error: 'No content in response',
+        details: candidate
       }, { status: 500 });
     }
 
+    // Find image part in response
+    const imagePart = candidate.content.parts.find((part: any) => part.inlineData);
+
+    if (!imagePart || !imagePart.inlineData || !imagePart.inlineData.data) {
+      console.error('No image data in response:', candidate);
+      return NextResponse.json({
+        error: 'No image data generated',
+        details: candidate
+      }, { status: 500 });
+    }
+
+    const generatedImageBase64 = imagePart.inlineData.data;
     const generatedImageBuffer = Buffer.from(generatedImageBase64, 'base64');
-    console.log('Generated image extracted from Imagen 3 response');
+    console.log('Generated image extracted from response');
 
     // Upload result to Cloudinary for permanent storage
     const resultUpload = await new Promise((resolve, reject) => {
@@ -118,7 +140,7 @@ export async function POST(request: Request) {
         {
           folder: 'gele-try-on/results',
           resource_type: 'image',
-          public_id: `result-imagen3-${Date.now()}`,
+          public_id: `result-gemini-${Date.now()}`,
         },
         (error, result) => {
           if (error) reject(error);
@@ -128,20 +150,20 @@ export async function POST(request: Request) {
       uploadStream.end(generatedImageBuffer);
     });
 
-    console.log('Success! Generated virtual try-on with Gemini Imagen 3');
+    console.log('Success! Generated virtual try-on with Gemini');
 
     return NextResponse.json({
       resultImage: (resultUpload as any).secure_url,
-      message: 'Virtual try-on generated with Google Gemini Imagen 3',
+      message: 'Virtual try-on generated with Google Gemini',
     });
 
   } catch (error: any) {
-    console.error('Gemini Imagen 3 API error:', error);
+    console.error('Gemini API error:', error);
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
 
     return NextResponse.json({
-      error: 'Failed to process image with Imagen 3',
+      error: 'Failed to process image with Gemini',
       details: error.message,
       stack: error.stack
     }, { status: 500 });
